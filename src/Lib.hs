@@ -3,18 +3,19 @@ module Lib
   , getBusTimes
   ) where
 
-import Network.HTTP.Req
-import Text.XML.Light.Types
-import Text.XML.Light.Proc
-import Data.Text (Text)
+import           Data.Text            (Text)
+import           Network.HTTP.Req
+import           Text.XML.Light.Proc
+import           Text.XML.Light.Types
 
-rftaQueryUrl = http "www.myrfta.com" /: "bustime" /: "map" /: "getStopPredictions.jsp"
+rftaQueryUrl =
+  http "www.myrfta.com" /: "bustime" /: "map" /: "getStopPredictions.jsp"
 
 requestBuses params = req GET rftaQueryUrl NoReqBody bsResponse params
 
 getBusTimes :: Maybe Element -> [String]
 getBusTimes Nothing = []
-getBusTimes (Just stop) = map strContent $ concatMap time $ pre stop
-  where
-    pre = findChildren $ QName "pre" Nothing Nothing
-    time = findChildren $ QName "pt" Nothing Nothing
+getBusTimes (Just stop) = map strContent $ concatMap (tag "pt") $ tag "pre" stop
+
+tag :: String -> Element -> [Element]
+tag name = findChildren $ QName name Nothing Nothing
